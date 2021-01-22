@@ -9,7 +9,7 @@
 ## Timing类介绍：
 
 #### 属性：
-Timing类目前包含7个属性，下面是各个属性的含义
+Timing类目前包含10个属性，下面是各个属性的含义
 
         self.init_asset：期初资产的净值，默认为1.
         
@@ -25,13 +25,25 @@ Timing类目前包含7个属性，下面是各个属性的含义
         
         self.asset_payoff：资产每日的收益率，不需要传入，Timing类在构造的时候会利用get_asset_payoff（）函数计算好asset_payoff。
         
+        self.risk为无风险利率
+        
+        self.days为每年交易日天数
+        
+        self.period为计算均值的窗口期
+        
 
 ##### get_asset_payoff(self, asset_data, asset_name):成员函数，传入资产每日净值，计算每日收益率，
 
 ##### moving_average_strategy_signal(self, month, monthly_payoff):成员函数，给定月份，计算在12月收益率均线策略下是否在当月持有资产。
 
-##### rate_moving_average_strategy(self, init_asset, payoff, signal_payoff):成员函数，计算12月收益率均线策略下资产的净值曲线，对于持有月份，每日的净值用前一日净值乘当日资产收益率；不持有的月份，用当月1年期国债收益率均值计算日收益。
+##### moving_average_strategy(self, init_asset, payoff, signal_payoff):成员函数，计算12月收益率均线策略下资产的净值曲线，对于持有月份，每日的净值用前一日净值乘当日资产收益率；不持有的月份，用当月1年期国债收益率均值计算日收益。
 
 ##### none_strategy(self, init_asset, payoff):没有择时策略的净值曲线
 
-##### plot_rate_moving_average_strategy(self):画出择时策略的净值曲线、不择时的净值曲线和给出择时信号的资产的月收益率。
+##### plot_net_value(self):画出择时策略的净值曲线、不择时的净值曲线和给出择时信号的资产的月收益率。
+
+##### def Max_Drawdown_ration(self):返回一个长度为2的tuple，第一个元素为择时策略的最大回测，第二个元素为资产的最大回测 
+
+##### def Sharpe_ratio(self):返回一个长度为2的tuple，第一个元素为择时策略的Sharpe ratio，第二个元素为资产的Sharpe ratio
+
+
