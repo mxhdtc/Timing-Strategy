@@ -45,7 +45,7 @@ class Timing():
         month_payoff = monthly_payoff[month]
         return month_payoff < mean_payoff
 
-    def rate_moving_average_strategy(self, init_asset, payoff, signal_payoff):
+    def moving_average_strategy(self, init_asset, payoff, signal_payoff):
         #计算1年期国债均线择时策略下资产每日的净值
         #payoff是资产的日收益率，索引是每个交易日
         #返回策略每个交易日的净值
@@ -81,14 +81,43 @@ class Timing():
                 net_value.append(cumulative_income)
         return pd.DataFrame({payoff.name: net_value}, index=payoff.index)
 
-    def plot_rate_moving_average_strategy(self):
-        #画出1年期国债收益率择时的净值曲线和标的资产的净值曲线
-        timing_payoff = self.rate_moving_average_strategy(self.init_asset,self.asset_payoff, self.signal_payoff)
+        def Max_Drawdown_ration(self):
+        # 返回一个长度为2的tuple，第一个元素为择时策略的最大回测，第二个元素为资产的最大回测
+        n1 = self.moving_average_strategy(self.init_asset, self.asset_payoff,
+                                               self.signal_payoff)  # n1是择时策略的每日净值
+        n2 = self.none_strategy(self.init_asset, self.asset_payoff)  # n2是不择时下资产的每日净值
+        n1 = np.array(list(n1[n1.columns[0]]))
+        n2 = np.array(list(n2[n2.columns[0]]))
+        n1_drawdowns = []
+        n2_drawdowns = []
+        for i in range(len(n1)):
+            n1_min = np.min(n1[i:])
+            n2_min = np.min(n2[i:])
+            n1_drawdowns.append(1 - n1_min / n1[i])
+            n2_drawdowns.append(1 - n2_min / n2[i])
+        return np.max(n1_drawdowns), np.max(n2_drawdowns)
+
+
+    def plot_net_value(self):
+        # 分别画出择时策略和标的资产的净值曲线
+        timing_payoff = self.moving_average_strategy(self.init_asset, self.asset_payoff, self.signal_payoff)
         non_timing_payoff = self.none_strategy(self.init_asset, self.asset_payoff)
-        plt.rcParams['font.sans-serif'] = ['SimHei']  ###解决中文乱码
-        plt.rcParams['axes.unicode_minus'] = False
         plt.plot(timing_payoff.index, timing_payoff[timing_payoff.columns[0]], 'b',
-        non_timing_payoff.index, non_timing_payoff[non_timing_payoff.columns[0]], 'r',
+                 non_timing_payoff.index, non_timing_payoff[non_timing_payoff.columns[0]], 'r',
                  self.signal_payoff.index, self.signal_payoff)
-        plt.legend(labels=['timing '+self.asset_name, self.asset_name, '1-year-rate payoff'], loc='best')
+        plt.legend(labels=['timing ' + self.asset_name, self.asset_name, '1-year-rate payoff'], loc='best')
+        plt.savefig('/Users/maxiaohang/Desktop/liangxin_results/{a}净值曲线({b}).jpg'
+                .format(a=file_name[i].split('.')[0], b=strategy_name))
         plt.show()
+        return plt
+
+    def Sharpe_ratio(self):
+        # 返回一个长度为2的tuple，第一个元素为择时策略的Sharpe ratio，第二个元素为资产的Sharpe ratio
+        n1 = self.moving_average_strategy(self.init_asset, self.asset_payoff,
+                                               self.signal_payoff)  # n1是择时策略的每日净值
+        n1 = n1[n1.columns[0]]
+        n2 = self.none_strategy(self.init_asset, self.asset_payoff)  # n2是不择时下资产的每日净值
+        exReturn1 = np.array(n1.pct_change().iloc[1:])
+        exReturn2 = np.array(n2.pct_change().iloc[1:])
+        return (np.mean(exReturn1)-self.rate / self.days)/np.std(exReturn1)*np.sqrt(self.days),\
+               (np.mean(exReturn2)-self.rate / self.days)/np.std(exReturn2)*np.sqrt(self.days)
